@@ -1,0 +1,2 @@
+webpackJsonp([24],{WuBO:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var a={render:function(){var e=this.$createElement;return(this._self._c||e)("div",{staticClass:"member"},[this._v("\n  member\n")])},staticRenderFns:[]};var r=n("VU/8")({name:"member"},a,!1,function(e){n("aECB")},"data-v-461b0a46",null);t.default=r.exports},aECB:function(e,t){}});
+//# sourceMappingURL=24.a6747227ba522245e38f.js.map

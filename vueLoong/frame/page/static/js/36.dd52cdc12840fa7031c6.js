@@ -1,0 +1,2 @@
+webpackJsonp([36],{ZMhe:function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var a={render:function(){var t=this.$createElement;return(this._self._c||t)("div",{staticClass:"quota"},[this._v("\n  quota\n")])},staticRenderFns:[]};var s=n("VU/8")({name:"quota"},a,!1,function(t){n("hQTW")},"data-v-0960034b",null);e.default=s.exports},hQTW:function(t,e){}});
+//# sourceMappingURL=36.dd52cdc12840fa7031c6.js.map

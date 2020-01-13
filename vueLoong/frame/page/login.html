@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LoongUI</title>
+  <link rel="icon" type="image/x-icon" href="LoongUI/static/img/aio.ico">
+  <style>
+    html, body {
+      padding: 0px;
+      margin: 0px;
+      width: 100%;
+      height: 100%;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .login-outer-wrap {
+      height: 100%;
+      overflow: auto;
+      background-image: linear-gradient(to bottom, #43BBFF, #1188DD);
+    }
+
+    .login-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-width: 700px;
+      background: url("LoongUI/frame/img/login-bg.png") no-repeat center center;
+    }
+
+    .login-box {
+      position: absolute;
+      width: 310px;
+      height: 363px;
+      background-color: #ffffff;
+      border-radius: 4px;
+      margin: auto;
+      padding: 35px 20px 0 20px;
+      top: calc((100% - 398px) / 2);
+      left: calc((100% - 350px) / 2);
+    }
+
+    .login-title {
+      padding: 30px 0 34px 33px;
+      font-size: 24px;
+      color: #666666;
+    }
+
+    .login-con {
+      padding: 0 25px;
+    }
+
+    .login-input-line {
+      padding: 18px 0 0 0;
+    }
+
+    .login-input-line input {
+      width: 250px;
+      height: 32px;
+      padding-left: 10px;
+      background-color: #F8F9FA;
+      border: 1px solid #E0E0E0;
+    }
+
+    .login-btn {
+      margin: 20px 0;
+      width: 260px;
+      height: 38px;
+      font-size: 14px;
+      line-height: 38px;
+      background-color: #1188DD;
+      color: #fff;
+      border-radius: 4px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .error-tip {
+      font-size: 12px;
+      color: #FF2222;
+    }
+
+    .pt10 {
+      padding-top: 10px;
+    }
+
+  </style>
+</head>
+<body>
+<div class="login-outer-wrap">
+  <div class="login-wrap">
+    <div class="login-box">
+      <div class="login-title"></div>
+      <div class="login-con">
+        <form class="login-form">
+          <div class="login-input-line">
+            <input type="text" name="username" id="username" placeholder="">
+          </div>
+          <div class="login-input-line">
+            <input type="password" class="password-text" id="password" placeholder="">
+            <input type="hidden" name="password">
+          </div>
+          <div class="pt10">
+            <div class="error-tip fs12 fl"></div>
+          </div>
+          <div class="login-btn"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="LoongUI/frame/js/jquery-3.4.1.min.js"></script>
+<script src="LoongUI/frame/js/md5.js"></script>
+<script src="LoongUI/frame/js/jquery.i18n.properties.js"></script>
+<script>
+    $(function () {
+        let language = navigator.language ? navigator.language : navigator.browserLanguage;
+        let locale = "zh";
+        if (language.indexOf("zh") > -1) {
+            locale = "zh";
+        } else {
+            locale = "en";
+        }
+        loadProperties(locale);
+        let hrefNow = window.location.href;
+        let url = getUrlParam(hrefNow);
+        if (url == null) {
+            window.location.href = "/";
+        } else if (url == '410') {
+            $('.error-tip').html($.i18n.prop('login_error_410'));
+        }
+        $("#username").focus();
+    });
+
+    function loadProperties(lang) {
+        $.i18n.properties({
+            name: 'i18n',    //属性文件名     命名格式： 文件名_国家代号.properties
+            path: 'LoongUI/frame/js/lang/',   //注意这里路径是你属性文件的所在文件夹
+            mode: 'map',
+            language: lang,     //这就是国家代号 name+language刚好组成属性文件名：strings+zh -> strings_zh.properties
+            callback: function () {
+                $('.login-title').html($.i18n.prop("login"));
+                $('#username').attr('placeholder', $.i18n.prop('username'));
+                $('#password').attr('placeholder', $.i18n.prop('password'));
+                $('.login-btn').html($.i18n.prop("login"));
+            }
+        });
+    }
+
+    function login() {
+        let username = $("#username").val();
+        let password = hex_md5($("#password").val());
+        $.ajax({
+            url: "/noToken/api/node/isMaster",
+            type: "get",
+            cache: false,
+            async: false,
+            data: {},
+            success: function (data) {
+                if (data) {
+                    $.ajax({
+                        type: "get",
+                        url: "/api/login",
+                        dataType: "json",
+                        contentType: "application/json",
+                        cache: false,
+                        async: false,
+                        data: {
+                            username: username,
+                            password: password
+                        },
+                        success: function (json) {
+                            if (json.error_code || json.error) {
+                                $.ajax({
+                                    type: "get",
+                                    url: "/api/login",
+                                    dataType: "json",
+                                    contentType: "application/json",
+                                    cache: false,
+                                    async: false,
+                                    data: {
+                                        "username": username,
+                                        "password": password,
+                                        "type": "ad"
+                                    },
+                                    success: function (json) {
+                                        if (json.error_code || json.error) {
+                                            $(".password-text").val("");
+                                            $('.error-tip').html($.i18n.prop('name_pwd_error'));
+                                        } else {
+                                            window.location.href = "main.html";
+                                        }
+                                    },
+                                    error: function (xhr, textStatus, errorThrown) {
+                                        if (xhr.status == 400) {
+                                            $('.error-tip').html($.i18n.prop('service_connect_failed'));
+                                        } else if (xhr.status == 500) {
+                                            $('.error-tip').html($.i18n.prop('login_failed'));
+                                        }
+                                    }
+                                });
+                            } else {
+                                window.location.href = "main.html";
+                            }
+                        },
+                        error: function (xhr, textStatus, errorThrown) {
+                            if (xhr.status == 400) {
+                                $('.error-tip').html($.i18n.prop('service_connect_failed'));
+                            } else if (xhr.status == 500) {
+                                $('.error-tip').html($.i18n.prop('login_failed'));
+                            }
+                        }
+                    });
+                } else {
+                    $('.error-tip').html($.i18n.prop('not_master_service'));
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                if (xhr.status == 410 || xhr.status == 500) {
+                    $('.error-tip').html($.i18n.prop('service_connect_failed'));
+                }
+            }
+        });
+    }
+
+    $('.login-btn').click(function () {
+        login();
+    })
+    $(".login-input-line").find("input").keydown(function (event) {
+        if (event.keyCode == "13") {
+            login();
+        }
+    });
+
+    function getUrlParam(name) {
+        if (name.indexOf('?errorCode=') > -1) {
+            let errorText = name.split('/')[3];
+            let errorCode = errorText.substr(errorText.indexOf('?errorCode=') + 11, errorText.length);
+            return errorCode
+        } else if (name.split('/')[3] != "") {
+            return null;
+        }
+        return "notNull";
+    }
+</script>
+</body>
+</html>
